@@ -1,0 +1,9 @@
+---
+title: "p8105_hw2_yl4606"
+author: "Yubei Liang"
+date: "9/28/2020"
+output: github_document
+---
+
+This is my HW2 solutions.
+
