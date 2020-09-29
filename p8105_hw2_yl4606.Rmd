@@ -123,6 +123,7 @@ Read and clean the data in pols-month.csv.
 month_df = 
   tibble(
     month = 1:12,
+    month_abbr = month.abb,
     month_name = month.name
   )
 
@@ -133,9 +134,10 @@ pols_month_df =
   separate(mon, into = c("year", "month", "day"), sep = "-") %>% 
   mutate(month = as.integer(month)) %>% 
   left_join(month_df, by = "month") %>% 
-  select(-c(month)) %>% 
+  select(-c(month, month_abbr)) %>% 
   relocate(year, month_name) %>% 
   rename(
+    month = month_name,
     gop = prez_gop,
     dem = prez_dem
   ) %>% 
@@ -146,6 +148,62 @@ pols_month_df =
   ) %>%
   filter( president_num == 1) %>% 
   select(-c(president_num, day)) %>% 
-  relocate(year, month_name, president)
+  relocate(year, month, president)
 ```
+
+
+Read and clean data in snp.csv.
+
+```{r message=FALSE}
+snp_df =
+  read_csv(
+    "./Data/fivethirtyeight_datasets/snp.csv"
+  ) %>% 
+  separate(date, into = c("month", "day", "year"), sep = "/") %>% 
+  mutate(month = as.integer(month)) %>%
+  arrange(year, month, day) %>% 
+  left_join(month_df, by = "month") %>% 
+  select(-c(month, day, month_abbr)) %>% 
+  relocate(year, month_name) %>% 
+  rename(
+    month = month_name
+  ) 
+```
+
+
+Read and clean unemployment data.
+
+```{r message=FALSE}
+unemployment_df = 
+  read_csv(
+    "./Data/fivethirtyeight_datasets/unemployment.csv"
+  ) %>% 
+  pivot_longer(
+    Jan:Dec,
+    names_to = "month_abbr",
+    values_to = "unemployment_pct"
+  ) %>% 
+  drop_na(unemployment_pct) %>% 
+  left_join(month_df, by = "month_abbr") %>% 
+  mutate(year = as.character(Year)) %>% 
+  arrange(year, month) %>% 
+  select(-c(month, month_abbr, Year)) %>% 
+  rename(
+    month = month_name,
+  ) %>% 
+  relocate(year,month)
+```
+
+
+Merging the three data frames.
+
+```{r message=FALSE}
+result_data = 
+  full_join(pols_month_df, snp_df, by = c("year", "month")) %>% 
+  full_join(unemployment_df, by = c("year", "month")) %>% 
+  arrange(year)
+```
+
+'pols_month_df' dataset gives the number of national politicians who are democratic or republican at any given time. 'snp_df' dataset gives Standard & Poor’s stock market index (S&P), often used as a representative measure of stock market as a whole. 'unemployment_df' dataset gives percentage of unemployment. All three datasets provide values per month in a year range `r range(as.numeric(pull(result_data, year)))`. The resulting dimension is `r nrow(result_data)` rows by `r ncol(result_data)` columns. The key variables include `r names(result_data)`.
+
 
