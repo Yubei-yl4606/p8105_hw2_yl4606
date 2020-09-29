@@ -65,3 +65,50 @@ precip_df =
 ```
 
 For Mr. Wheel Trsh data frame, there are `r nrow(trash_df)` times of dumpster obervation. Key variables include `r names(trash_df)` . For precipitation data frame, there are `r nrow(precip_df)` times of obervation. Key variables include `r names(precip_df)` . The total precipitation for 2018 is `r sum(pull(precipitation_2018_df, total))`. The median number of sports balls in a dumpster in 2017 is `r sb<-trash_df %>% filter(year==2017)` `r median(pull(sb,sports_balls))`.
+
+```{r}
+rm(sb, precipitation_2018_df, precipitation_2017_df)
+```
+
+
+
+# Problem 2
+
+Read and clean the NYC subway dataset.
+
+```{r message=FALSE}
+raw_nyc_subway_df = 
+  read_csv(
+  "./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv"
+  ) %>%
+  janitor::clean_names() 
+
+new_nyc_subway_df = 
+  raw_nyc_subway_df %>%
+  select(line, station_name, station_latitude, station_longitude, route1:route11, entrance_type, entry, vending, ada) %>%
+  mutate(entry = recode(entry, "YES" = TRUE, "NO" = FALSE),
+         route8 = as.character(route8),
+         route9 = as.character(route9),
+         route10 = as.character(route10),
+         route11 = as.character(route11),
+         vending = recode(vending, "YES" = TRUE, "NO" = FALSE))
+```
+
+The raw NYC subway dataset include variables `r names(raw_nyc_subway_df)`. My cleaning process include reading data, cleaning variable names using janitor package, selecting key variables (`r names(new_nyc_subway_df)`). Finally, I use recode() function to convert variable 'entry' from character to logical, variable 'vending' from character to logical, and all variables with prefix 'route' are converted to the same class character for furthur explore. NAs are not removed because the NAs here are informative with regard to routes. The dimention of the resulting dataset is `r nrow(new_nyc_subway_df)` rows by `r ncol(new_nyc_subway_df)` columns. No, the data looks not tidy for me. For variables and values start with 'route', although they are human readable, it is inconvenient to use computer language to fetch informations. 
+
+There are `r nrow(distinct(new_nyc_subway_df, line, station_name))` distinct subway stations, `r new_nyc_subway_df%>%distinct(line, station_name, ada)%>%filter(ada==TRUE)%>%nrow()` of them are ADA compliant. `r nrow(new_nyc_subway_df %>% filter(entry == TRUE & vending == FALSE))/nrow(new_nyc_subway_df %>% filter(vending == FALSE))` fraction of station entrances / exits without vending allow entrance.
+
+
+```{r reformat}
+reformat_nyc_subway_df<-
+  new_nyc_subway_df%>%
+  pivot_longer(
+    route1 : route11,
+    names_to = "route_number",
+    values_to = "route_name"
+    ) %>%
+  drop_na(route_name)
+```
+
+After reformating data, `r reformat_nyc_subway_df %>% filter(route_name == "A") %>% distinct(line, station_name) %>% nrow()` distinct stations serve the A train. `r reformat_nyc_subway_df %>% filter(route_name == "A" & ada == T) %>% distinct(line, station_name) %>% nrow()` of them are ADA compliant.
+
