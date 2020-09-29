@@ -112,3 +112,40 @@ reformat_nyc_subway_df<-
 
 After reformating data, `r reformat_nyc_subway_df %>% filter(route_name == "A") %>% distinct(line, station_name) %>% nrow()` distinct stations serve the A train. `r reformat_nyc_subway_df %>% filter(route_name == "A" & ada == T) %>% distinct(line, station_name) %>% nrow()` of them are ADA compliant.
 
+
+
+# Problem 3
+
+Read and clean the data in pols-month.csv.
+
+```{r message=FALSE}
+# create a tibble to convert month number
+month_df = 
+  tibble(
+    month = 1:12,
+    month_name = month.name
+  )
+
+pols_month_df = 
+  read_csv(
+    "./Data/fivethirtyeight_datasets/pols-month.csv"
+  ) %>% 
+  separate(mon, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(month = as.integer(month)) %>% 
+  left_join(month_df, by = "month") %>% 
+  select(-c(month)) %>% 
+  relocate(year, month_name) %>% 
+  rename(
+    gop = prez_gop,
+    dem = prez_dem
+  ) %>% 
+  pivot_longer(
+    c(gop, dem),
+    names_to = "president",
+    values_to = "president_num",
+  ) %>%
+  filter( president_num == 1) %>% 
+  select(-c(president_num, day)) %>% 
+  relocate(year, month_name, president)
+```
+
