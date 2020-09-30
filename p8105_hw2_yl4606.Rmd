@@ -1,7 +1,6 @@
 ---
 title: "p8105_hw2_yl4606"
 author: "Yubei Liang"
-date: "9/28/2020"
 output: github_document
 ---
 
@@ -68,7 +67,7 @@ precip_df =
 precip_df
 ```
 
-For Mr. Wheel Trsh data frame, there are `r nrow(trash_df)` times of dumpster obervation. Key variables include `r names(trash_df)` . For precipitation data frame, there are `r nrow(precip_df)` times of obervation. Key variables include `r names(precip_df)` . The total precipitation for 2018 is `r sum(pull(precipitation_2018_df, total))`. The median number of sports balls in a dumpster in 2017 is `r sb<-trash_df %>% filter(year==2017)` `r median(pull(sb,sports_balls))`.
+For Mr. Wheel Trsh data frame, there are `r nrow(trash_df)` times of dumpster obervation. Key variables include `r names(trash_df)` . For precipitation data frame, there are `r nrow(precip_df)` times of obervation. Key variables include `r names(precip_df)` . The total precipitation for 2018 is `r sum(pull(precipitation_2018_df, total))`. The median number of sports balls in a dumpster in 2017 is `r filter(trash_df, year == 2017) %>% summarise(median(sports_balls))`.
 
 ```{r echo=FALSE}
 rm(precipitation_2018_df, precipitation_2017_df)
